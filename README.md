@@ -32,8 +32,8 @@ Since signatures and hashes are computed over concrete bytes rather than abstrac
 - `payload_hash`, the hash of the payload, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash).
 - `size`, the size of the payload, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64).
 - `seqnum`, the sequence number of the entry, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64). Note that this limits the maximum size of logs to 2^64 - 1.
-- `backlink`, the hash of the previous log entry, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash).
-- `lipmaalink`, the hash of an older log entry, encoded as a canonical, binary [yamf-hashe](https://github.com/AljoschaMeyer/yamf-hash). For details on which entry the lipmaalink has to point to, see the next section.
+- `backlink`, the hash of the previous log entry, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash). This is omitted if the `seqnum` is one.
+- `lipmaalink`, the hash of an older log entry, encoded as a canonical, binary [yamf-hashe](https://github.com/AljoschaMeyer/yamf-hash). For details on which entry the lipmaalink has to point to, see the next section. This is omitted if the `seqnum` is one.
 - `sig`, the signature obtained from signing the previous data with the author's private key, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64) followed by that many bytes (the raw signature).
 
 Note that peers don't necessarily have to adhere to this encoding when persisting or exchanging data. In some cases, tag, seqnum, backlinks and payload_hash can be reconstructed without them having to be transmitted. This encoding is only binding for signature verification and hash computation, nothing more.
@@ -65,14 +65,14 @@ Whether the created-before relation claimed by the sequence numbers `x` and `y` 
 An entry is considered *verified* if and only if:
 
 - authenticity has been checked via the signature
-- there is a link path from the entry to the zeroth entry, where all but the first entry (which is the one to be verified) are already verified
-- each backlink and each lipmaalink points to the entry of the expected sequence number
+- the entry has sequence number one OR there is a link path from the entry to the first entry, where all but the newest entry (which is the one to be verified) are already verified
+- the entry has sequence number one OR the backlink and the lipmaalink point to the entry of the expected sequence number
 
 Additionally, if the payload of an entry is available to a peer, the peer must check wether the size of the payload in bytes matches the claimed (and signed) size metadata. If it doesn't, the feed must be considered invalid from that entry onwards (there's zero tolerance for authors lying about payload sizes).
 
 ## Partial Replication and Log Verification
 
-When partially replicating a log, a peer is only interested in a subset of the log's entries. Verifying all elements of a subset of a log independently does not yet verify the subset as a whole. For a subset to be considered verified, there must also be a backlink path from the newest entry to the zeroth entry that contains all other entries of the subset. Otherwise, the created-before relation claimed by the entry's sequence numbers isn't verified.
+When partially replicating a log, a peer is only interested in a subset of the log's entries. Verifying all elements of a subset of a log independently does not yet verify the subset as a whole. For a subset to be considered verified, there must also be a backlink path from the newest entry to the first entry that contains all other entries of the subset. Otherwise, the created-before relation claimed by the entry's sequence numbers isn't verified.
 
 To traverse that path, the peer may have to store other entries it isn't really interested in. It doesn't need to fully verify those, but it should still check authenticity and follow backlinks if their target is available, to check for forks and invalid sequence numbers. In particular, there is no need to request the payload of these entries.
 
@@ -82,7 +82,7 @@ For some entry `x` the peer is interested in, the *certificate pool of `x`* is t
 - `w` to `0`, where `y` is defined as above
 - `z` to `x`, where `z` is the smallest natural number greater than or equal to `x` such that there exists a natural number `l` with `z == (((3^l) - 1) / 2)`
 
-Note that this is a superset of the entries needed to verify `x` agains the zeroth entry. The path from `z` to `x` is needed so that the union of two certificate pools for two entries `x` and `y` (`x` < `y`) always contains a path from `y` to `0` via `x`. By requesting full certificate pools from its peers, a peer can then always verify the full log subset it is interested in.
+Note that this is a superset of the entries needed to verify `x` agains the first entry. The path from `z` to `x` is needed so that the union of two certificate pools for two entries `x` and `y` (`x` < `y`) always contains a path from `y` to `0` via `x`. By requesting full certificate pools from its peers, a peer can then always verify the full log subset it is interested in.
 
 Note also that the entries of the path from `z` to `x` do not necessarily exist yet. The log subset can still be fully verified, since the non-existent entries are only needed to allow later extensions of the subset (at which point the new entries do exist). Finally note that peers can efficiently request full certificate pools by just specifying the single sequence number they are interested in. They can also tell their peers about subsets of the certificate pool they already have in the same way, resulting in very low communication overhead.
 
