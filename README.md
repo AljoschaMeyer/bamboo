@@ -33,7 +33,7 @@ Since signatures and hashes are computed over concrete bytes rather than abstrac
 - `size`, the size of the payload, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64).
 - `seqnum`, the sequence number of the entry, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64). Note that this limits the maximum size of logs to 2^64 - 1.
 - `backlink`, the hash of the previous log entry, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash). This is omitted if the `seqnum` is one.
-- `lipmaalink`, the hash of an older log entry, encoded as a canonical, binary [yamf-hashe](https://github.com/AljoschaMeyer/yamf-hash). For details on which entry the lipmaalink has to point to, see the next section. This is omitted if the `seqnum` is one.
+- `lipmaalink`, the hash of an older log entry, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash). For details on which entry the lipmaalink has to point to, see the next section. This is omitted if the `seqnum` is one.
 - `sig`, the signature obtained from signing the previous data with the author's private key, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64) followed by that many bytes (the raw signature).
 
 Note that peers don't necessarily have to adhere to this encoding when persisting or exchanging data. In some cases, tag, seqnum, backlinks and payload_hash can be reconstructed without them having to be transmitted. This encoding is only binding for signature verification and hash computation, nothing more.
@@ -58,7 +58,7 @@ g(n) := if (n == (((3^k) - 1) / 2) for some natural number k) then {
 }
 ```
 
-Sorry for the math, but on the plus side, it works! This computes the edges according to the scheme presented in [Buldas, A., & Laud, P. (1998, December). New linking schemes for digital time-stamping](https://pdfs.semanticscholar.org/76cc/ae87b47d7f11a4c2ae76510dde205a635cd0.pdf). For a (slightly) more enjoyable overview of the theory behind this, I'd recommend [Helger Lipmaa's Thesis](https://kodu.ut.ee/~lipmaa/papers/thesis/thesis.pdf).
+Sorry for the math, but on the plus side, it works! This computes the edges according to the scheme presented in [Buldas, A., & Laud, P. (1998, December). New linking schemes for digital time-stamping](https://pdfs.semanticscholar.org/76cc/ae87b47d7f11a4c2ae76510dde205a635cd0.pdf). For a (slightly) more enjoyable overview of the theory behind this, I'd recommend [Helger Lipmaa's thesis](https://kodu.ut.ee/~lipmaa/papers/thesis/thesis.pdf).
 
 Whether the created-before relation claimed by the sequence numbers `x` and `y` of two entries is indeed valid can be verified by finding a path along the links from the (claimed) newer entry to the older one. By verifying the created-before relation over all known entries of a log, a peer can check that the entries form indeed a single log (rather than disparate logs, trees or dags).
 
