@@ -13,8 +13,8 @@ Each append-only *log* is identified by a public key of a cryptographic signatur
 - the *lipmaalink*, a cryptographically secure hash of some older entry in the log, chosen such that there are short paths between any pair of entries
 - the hash of the actual *payload* of the entry
 - the *size* of the payload in bytes
-- a digital signature of all the previous data, issued with the log's public key
 - a boolean that indicates whether this is a regular entry or an *end-of-log* marker
+- a digital signature of all the previous data, issued with the log's public key
 
 Since all entries are signed, only the holder of the log's private key (called the *author*) can create new entries. Thus logs can be replicated via potentially untrusted peers - any attempt to alter data or create new entries can be detected. The author however could *fork* a log by giving different entries of the same sequence number to different peers, resulting in a directed tree or even a directed acyclic graph rather than a log (aka a path in graph-theory parlance). This is where the backlinks come in: By iteratively traversing backlinks, any reader of the log can verify that no fork occured. Forked logs are considered invalid from the point of the earliest fork, so there is no incentive for the author to deliberately fork their log. Additionally, backlinks establish a causal order on the existence of entries: Each entry guarantees that all previous entries have already existed prior in time, else their hash could not have been (transitively) included.
 
