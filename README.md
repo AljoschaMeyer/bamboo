@@ -46,7 +46,7 @@ The lipmaalinks are chosen such that for any pair of entries there is a path fro
 
 The lipmaalink target of the entry of sequence number `n` is computed through the function `f`, defined below:
 
-![The above formula typeset with LaTeX](./formula.svg)
+![The lipmaalink formula typeset with LaTeX](./formula.svg)
 
 And a plaintext version of the same formula:
 
