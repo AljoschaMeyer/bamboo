@@ -87,11 +87,14 @@ To traverse that path, the peer may have to store other entries it isn't really 
 
 For some entry `x` the peer is interested in, the _certificate pool of `x`_ is the (logarithmically sized) set of further entries the peer needs to store. It is defined as the union of the shortest link paths from:
 
--   `x` to `w`, where `w` is the largest natural number strictly less than `x` such that there exists a natural number `k` with `w == (((3^k) - 1) / 2)`
--   `w` to `0`, where `y` is defined as above
+-   `x` to `1`
 -   `z` to `x`, where `z` is the smallest natural number greater than or equal to `x` such that there exists a natural number `l` with `z == (((3^l) - 1) / 2)`
 
-Note that this is a superset of the entries needed to verify `x` agains the first entry. The path from `z` to `x` is needed so that the union of two certificate pools for two entries `x` and `y` (`x` &lt; `y`) always contains a path from `y` to `0` via `x`. By requesting full certificate pools from its peers, a peer can then always verify the full log subset it is interested in.
+The following graphic shows the certificate pool for entry 23. The path from 23 to 1 is marked in blue, the path from 40 to 23 in orange. Note that even if the log is larger than 40 messages, the certificate pool does not grow.
+
+![A visualization of the certificate pool for entry 23](./certpool.svg)
+
+Note that this is a superset of the entries needed to verify `x` agains the first entry. The path from `z` to `x` is needed so that the union of two certificate pools for two entries `x` and `y` (`x` < `y`) always contains a path from `y` to `0` via `x`. By requesting full certificate pools from its peers, a peer can then always verify the full log subset it is interested in.
 
 Note also that the entries of the path from `z` to `x` do not necessarily exist yet. The log subset can still be fully verified, since the non-existent entries are only needed to allow later extensions of the subset (at which point the new entries do exist). Finally note that peers can efficiently request full certificate pools by just specifying the single sequence number they are interested in. They can also tell their peers about subsets of the certificate pool they already have in the same way, resulting in very low communication overhead.
 
