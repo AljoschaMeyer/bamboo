@@ -3,8 +3,6 @@
 \begin{document}
 \thispagestyle{empty}
 
-
-
 \begin{align*}
   f(n) &= \begin{cases}
     n- 3^k &\mbox{if } n = \frac{3^k - 1}{2} \\
@@ -12,7 +10,7 @@
   \end{cases}\\
   g(n) &= \begin{cases}
     k &\mbox{if } n = \frac{3^k - 1}{2} \\
-    g(n - \frac{3^{(k - 1)} - 1}{2}) & \mbox{if } \frac{3^{(k - 1)} - 1}{2} \leq n \leq \frac{3^k - 1}{2}
+    g(n - \frac{3^{k - 1} - 1}{2}) & \mbox{if } \frac{3^{k - 1} - 1}{2} \leq n \leq \frac{3^k - 1}{2}
   \end{cases}\\
 \end{align*}
 
