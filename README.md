@@ -60,7 +60,7 @@ f(n) := if (n == (((3^k) - 1) / 2) for some natural number k) then {
 g(n) := if (n == (((3^k) - 1) / 2) for some natural number k) then {
   return k;
 } else {
-  let k := the natural number k such that (((3^(k - 1)) - 1) / 2) <= n <= (((3^(k)) - 1) / 2);
+  let k := the natural number k such that (((3^(k - 1)) - 1) / 2) < n < (((3^(k)) - 1) / 2);
   return g(n - (((3^(k - 1)) - 1) / 2));
 }
 ```
