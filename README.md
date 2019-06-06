@@ -42,7 +42,9 @@ The authenticity of an entry can be verified by checking whether the signature i
 
 ## Links and Entry Verification
 
-The lipmaalinks are chosen such that for any pair of entries there is a path from the newer to the older one of a length logarithmic in their distance. The lipmaalink target of the entry of sequence number `n` is computed through the function `f`, defined below:
+The lipmaalinks are chosen such that for any pair of entries there is a path from the newer to the older one of a length logarithmic in their distance. Here is a graphical representation of the lipmaalinks in a log of 40 entries, the colored boxes indicating its recursive structure: ![A drawing of a the lipmaalinks in a log of 40 entries](./graph.svg)
+
+The lipmaalink target of the entry of sequence number `n` is computed through the function `f`, defined below:
 
 ```yay,math!
 f(n) := if (n == (((3^k) - 1) / 2) for some natural number k) then {
