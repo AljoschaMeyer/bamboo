@@ -52,7 +52,7 @@ And a plaintext version of the same formula:
 
 ```yay,math!
 f(n) := if (n == (((3^k) - 1) / 2) for some natural number k) then {
-  return n - (3^k);
+  return n - (3^(k-1));
 } else {
   return n - (((3^g(n)) - 1) / 2);
 }
