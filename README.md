@@ -4,7 +4,7 @@ A cryptographically secure, distributed, single-writer append-only log that supp
 
 Powered by [optimal anti-monotone binary graphs](https://pdfs.semanticscholar.org/76cc/ae87b47d7f11a4c2ae76510dde205a635cd0.pdf), this log format can serve as a more efficient alternative to [secure-scuttlebutt](https://www.scuttlebutt.nz/) while providing stronger guarantees regarding causal ordering of entries than [dat's hypercore](https://github.com/mafintosh/hypercore).
 
-**Status: Usable in its current state, but not yet stable. There may still be (breaking) changes to the spec.**
+**Status: Well-defined and useful, but not yet stable. There may still be (breaking) changes to the spec.**
 
 ## Concepts and Properties
 
@@ -72,6 +72,27 @@ g(n) := if (n == (((3^k) - 1) / 2) for some natural number k) then {
 Sorry for the math, but on the plus side, it works! This computes the edges according to the scheme presented in [Buldas, A., & Laud, P. (1998, December). New linking schemes for digital time-stamping](https://pdfs.semanticscholar.org/76cc/ae87b47d7f11a4c2ae76510dde205a635cd0.pdf). For a (slightly) more enjoyable overview of the theory behind this, I'd recommend [Helger Lipmaa's thesis](https://kodu.ut.ee/~lipmaa/papers/thesis/thesis.pdf).
 
 An alternate way of gaining some intuition about the lipmaalinks is to think of the sequence numbers in [ternary (base 3)](https://en.wikipedia.org/wiki/Ternary_numeral_system). In ternary, `3^k` is represented as a `1` digit followed by `k` zero digits. `(3^k) - 1` is thus `k` `2` digits, and `((3^k) - 1) / 2` is `k` `1` digits. So if the sequence number consists solely of `1` digits in ternary, we enter the first branch of the formulas and `k` is the number of digits. Otherwise (i.e. if the sequence number is _not_ half of the predecessor of a power of three), `k` is the number of ternary digits of the next smaller number whose ternary representation consists solely of `1` digits.
+
+A python function computing lipmaalinks that doesn't explicitly use logarithms (credit goes to [cft](https://cn.dmi.unibas.ch/people/cft/)):
+
+```python
+def lipmaa_iterative(n): # for the fixed graph
+    m, po3, x = 1, 3, n
+    # find k such that (3^k - 1)/2 >= n
+    while m < n:
+        po3 *= 3
+        m = (po3 - 1) // 2
+    po3 //= 3
+    # find longest possible backjump
+    if m != n:
+        while x != 0:
+            m = (po3 - 1) // 2
+            po3 //= 3
+            x %= m
+        if m != po3:
+            po3 = m
+    return n - po3
+```
 
 Whether the created-before relation claimed by the sequence numbers `x` and `y` of two entries is indeed valid can be verified by finding a path along the links from the (claimed) newer entry to the older one. By verifying the created-before relation over all known entries of a log, a peer can check that the entries form indeed a single log (rather than disparate logs, trees or dags).
 
