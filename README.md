@@ -4,6 +4,8 @@ A cryptographically secure, distributed, single-writer append-only log that supp
 
 Powered by [optimal anti-monotone binary graphs](https://pdfs.semanticscholar.org/76cc/ae87b47d7f11a4c2ae76510dde205a635cd0.pdf), this log format can serve as a more efficient alternative to [secure-scuttlebutt](https://www.scuttlebutt.nz/) while providing stronger guarantees regarding causal ordering of entries than [dat's hypercore](https://github.com/mafintosh/hypercore).
 
+**Status: Usable in its current state, but not yet stable. There may still be (breaking) changes to the spec.**
+
 ## Concepts and Properties
 
 Each append-only _log_ is identified by a public key of a cryptographic signature scheme. Conceptually, an _entry_ in the log is a tuple of:
