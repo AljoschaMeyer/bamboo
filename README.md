@@ -2,9 +2,9 @@
 
 A cryptographically secure, distributed, single-writer append-only log that supports transitive partial replication and local deletion of data.
 
-Powered by [optimal anti-monotone binary graphs](https://pdfs.semanticscholar.org/76cc/ae87b47d7f11a4c2ae76510dde205a635cd0.pdf), this log format can serve as a more efficient alternative to [secure-scuttlebutt](https://www.scuttlebutt.nz/) while providing stronger guarantees regarding causal ordering of entries than [dat's hypercore](https://github.com/mafintosh/hypercore).
+Powered by [science](https://pdfs.semanticscholar.org/76cc/ae87b47d7f11a4c2ae76510dde205a635cd0.pdf), this log format can serve as a more efficient alternative to [secure-scuttlebutt](https://www.scuttlebutt.nz/) while providing stronger guarantees regarding causal ordering of entries than [dat's hypercore](https://github.com/mafintosh/hypercore).
 
-**Status: Well-defined and useful, but not yet stable. There may still be (breaking) changes to the spec.**
+**Status: Well-defined and useful, but not yet fully stable. There might still be (breaking) changes to the spec.**
 
 ## Concepts and Properties
 
@@ -76,7 +76,7 @@ An alternate way of gaining some intuition about the lipmaalinks is to think of 
 A python function computing lipmaalinks that doesn't explicitly use logarithms (credit goes to [cft](https://cn.dmi.unibas.ch/people/cft/)):
 
 ```python
-def lipmaa_iterative(n): # for the fixed graph
+def lipmaa_iterative(n):
     m, po3, x = 1, 3, n
     # find k such that (3^k - 1)/2 >= n
     while m < n:
@@ -102,7 +102,7 @@ An entry is considered _verified_ if and only if:
 -   the entry has sequence number one OR there is a link path from the entry to the first entry, where all but the newest entry (which is the one to be verified) are already verified
 -   the entry has sequence number one OR the backlink and the lipmaalink point to the entry of the expected sequence number
 
-Additionally, if the payload of an entry is available to a peer, the peer must check wether the size of the payload in bytes matches the claimed (and signed) size metadata. If it doesn't, the feed must be considered invalid from that entry onwards (there's zero tolerance for authors lying about payload sizes).
+Additionally, if the payload of an entry is available to a peer, the peer must check wether it hashes to the claimed (and signed) hash, and whether the size of the payload in bytes matches the claimed (and signed) size metadata. If it doesn't, the feed must be considered invalid from that entry onwards (there's zero tolerance for authors lying about payload sizes).
 
 ## Partial Replication and Log Verification
 
@@ -113,19 +113,19 @@ To traverse that path, the peer may have to store other entries it isn't really 
 For some entry `x` the peer is interested in, the _certificate pool of `x`_ is the (logarithmically sized) set of further entries the peer needs to store. It is defined as the union of the shortest link paths from:
 
 -   `x` to `1`
--   `z` to `x`, where `z` is the smallest natural number greater than or equal to `x` such that there exists a natural number `l` with `z == (((3^l) - 1) / 2)`
+-   `z` to `x`, where `z` is the smallest natural number greater than or equal to `x` such that there exists a natural number `k` with `z == (((3^k) - 1) / 2)`
 
-The following graphic shows the certificate pool for entry 23. The path from 23 to 1 is marked in blue, the path from 40 to 23 in orange. Note that even if the log is larger than 40 messages, the certificate pool does not grow.
+The following graphic shows the certificate pool for entry 23. The path from 23 to 1 is marked in blue, the path from 40 to 23 in orange. Note that even if the log becomes larger than 40 messages, the certificate pool does not grow.
 
 ![A visualization of the certificate pool for entry 23](./certpool.svg)
 
-Note that this is a superset of the entries needed to verify `x` agains the first entry. The path from `z` to `x` is needed so that the union of two certificate pools for two entries `x` and `y` (`x` < `y`) always contains a path from `y` to `0` via `x`. By requesting full certificate pools from its peers, a peer can then always verify the full log subset it is interested in.
+Note that this is a superset of the entries needed to verify `x` agains the first entry. The path from `z` to `x` is needed so that the union of two certificate pools for two entries `x` and `y` (`x` < `y`) always contains a path from `y` to `1` via `x`. By requesting full certificate pools from its peers, a peer can then always verify the full log subset it is interested in.
 
 Note also that the entries of the path from `z` to `x` do not necessarily exist yet. The log subset can still be fully verified, since the non-existent entries are only needed to allow later extensions of the subset (at which point the new entries do exist). Finally note that peers can efficiently request full certificate pools by just specifying the single sequence number they are interested in. They can also tell their peers about subsets of the certificate pool they already have in the same way, resulting in very low communication overhead.
 
 ## Related Work
 
-[Secure scuttlebutt](https://www.scuttlebutt.nz/) inspired bamboo. Bamboo can be seen as a generalization of ssb's signed linked lists to a binary anti-monotone graph to allow partial replication. To mitigate the lack of partial replication, ssb supports retrieval of log entries via hash, but forfeits the security guarantees of regularly replicated entries. As of writing, ssb also signs the payloads directly rather than their hash, making it impossible to locally delete log payloads without losing the ability to replicate the log to other peers.
+[Secure scuttlebutt](https://www.scuttlebutt.nz/) inspired bamboo. Bamboo can be seen as a generalization of ssb's signed linked lists to a binary anti-monotone graph to allow partial replication. To mitigate the lack of partial replication, ssb supports retrieval of log entries via hash, but forfeits the security guarantees of regularly replicated entries. As of writing, ssb also signs the payloads directly rather than their hash, making it impossible to locally delete log payloads without losing the ability to replicate the log to other peers. The ssb folks are currently working on making bamboo or a very similar format part of ssb.
 
 [Hypercore](https://github.com/mafintosh/hypercore) is a distributed, sparsely-replicatable append-only log like bamboo. It uses merkle trees whereas bamboo only uses backlinks. Bamboo's focus on transitive sparse replication via certificate pools can also be implemented on top of hypercore.
 
