@@ -2,9 +2,9 @@
 
 A cryptographically secure, distributed, single-writer append-only log that supports transitive partial replication and local deletion of data.
 
-Powered by [science](https://pdfs.semanticscholar.org/76cc/ae87b47d7f11a4c2ae76510dde205a635cd0.pdf), this log format can serve as a more efficient alternative to [secure-scuttlebutt](https://www.scuttlebutt.nz/) while providing stronger guarantees regarding causal ordering of entries than [dat's hypercore](https://github.com/mafintosh/hypercore).
+Powered by [science](https://pdfs.semanticscholar.org/76cc/ae87b47d7f11a4c2ae76510dde205a635cd0.pdf), this log format can serve as a more efficient alternative to [secure-scuttlebutt](https://www.scuttlebutt.nz/)'s naive linked lists.
 
-**Status: Well-defined and useful, but not yet fully stable. There might still be (breaking) changes to the spec.**
+**Status: Well-defined and useful. No breaking changes are currently planned, but stability isn't guaranteed yet.**
 
 ## Concepts and Properties
 
@@ -127,6 +127,6 @@ Note also that the entries of the path from `z` to `x` do not necessarily exist 
 
 [Secure scuttlebutt](https://www.scuttlebutt.nz/) inspired bamboo. Bamboo can be seen as a generalization of ssb's signed linked lists to a binary anti-monotone graph to allow partial replication. To mitigate the lack of partial replication, ssb supports retrieval of log entries via hash, but forfeits the security guarantees of regularly replicated entries. As of writing, ssb also signs the payloads directly rather than their hash, making it impossible to locally delete log payloads without losing the ability to replicate the log to other peers. The ssb folks are currently working on making bamboo or a very similar format part of ssb.
 
-[Hypercore](https://github.com/mafintosh/hypercore) is a distributed, sparsely-replicatable append-only log like bamboo. It uses merkle trees whereas bamboo only uses backlinks. Bamboo's focus on transitive sparse replication via certificate pools can also be implemented on top of hypercore.
+[Hypercore](https://github.com/mafintosh/hypercore) is a distributed, sparsely-replicatable append-only log like bamboo. It uses merkle trees whereas bamboo only uses backlinks. Hypercore has slightly smaller certificates for partial verification (but still in `O(log(n))`, but appending or verifying an entry has a worst-case time complexity of `O(log(n))` rather than bamboo's `O(1)`. See [here](https://github.com/AljoschaMeyer/bamboo/issues/2) for a brief discussion of hypercore and its more complex verification mechanism. Transitive sparse replication via certificate pools can also be implemented on top of hypercore.
 
-[Leyline-core](https://github.com/AljoschaMeyer/leyline-core) is the author's clumsy first attempt at defining a log structure that supports partial replication. It ends up badly reinventing [authenticated append-only skip lists](https://arxiv.org/pdf/cs/0302010.pdf), which are inferior to the [anti-monotone scheme](https://kodu.ut.ee/~lipmaa/papers/thesis/thesis.pdf) that bamboo uses.
+[Leyline-core](https://github.com/AljoschaMeyer/leyline-core) is the author's clumsy first attempt at defining a log structure that supports partial replication. It ends up badly reinventing [authenticated append-only skip lists](https://arxiv.org/pdf/cs/0302010.pdf), which are arguably inferior to the [anti-monotone scheme](https://kodu.ut.ee/~lipmaa/papers/thesis/thesis.pdf) that bamboo uses.
