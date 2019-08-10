@@ -2,9 +2,9 @@
 
 A cryptographically secure, distributed, single-writer append-only log that supports transitive partial replication and local deletion of data.
 
-Powered by [science](https://pdfs.semanticscholar.org/76cc/ae87b47d7f11a4c2ae76510dde205a635cd0.pdf), this log format can serve as a more efficient alternative to [secure-scuttlebutt](https://www.scuttlebutt.nz/)'s naive linked lists.
+Powered by [science](https://pdfs.semanticscholar.org/76cc/ae87b47d7f11a4c2ae76510dde205a635cd0.pdf), this log format can serve as a more efficient alternative to [secure-scuttlebutt](https://www.scuttlebutt.nz/)'s linked lists or [hypercore](https://github.com/mafintosh/hypercore)'s merkle forests.
 
-**Status: Well-defined and useful. No breaking changes are currently planned, but stability isn't guaranteed yet.**
+**Status: Well-defined and useful. Stability isn't guaranteed yet, the author is still not perfectly happy with signing the payload size.**
 
 ## Concepts and Properties
 
@@ -17,6 +17,7 @@ Each append-only _log_ is identified by a public key of a cryptographic signatur
 -   the hash of the actual _payload_ of the entry
 -   the _size_ of the payload in bytes
 -   a boolean that indicates whether this is a regular entry or an _end-of-log_ marker
+-   an indicator for the digital signature scheme used by the log, currently there's only one ([ed25519](https://ed25519.cr.yp.to/))
 -   a digital signature of all the previous data, issued with the log's public key
 
 Since all entries are signed, only the holder of the log's private key (the _author_) can create new entries. Thus logs can be replicated via potentially untrusted peers - any attempt to alter data or create new entries can be detected. The author however could _fork_ a log by giving different entries of the same sequence number to different peers, resulting in a directed tree rather than a log (aka a path in graph-theory parlance). This is where the backlinks come in: By iteratively traversing backlinks, any reader of the log can verify that no fork occured. Forked logs are considered invalid from the point of the earliest fork, so there is no incentive for the author to deliberately fork their log. Additionally, backlinks establish a causal order on the existence of entries: Each entry guarantees that all previous entries have already existed prior in time, else their hash could not have been (transitively) included.
@@ -31,10 +32,10 @@ While this property alone allows a peer to efficiently validate parts of a log, 
 
 Since signatures and hashes are computed over concrete bytes rather than abstract descriptions, bamboo defines a precise binary encoding for the log entries. It uses multiformats so that new cryptographic primitives can be introduced without having to change the specification. The encoding is defined as the concatenation of the following byte strings:
 
--   `tag`, either a zero byte (`0x00`) to indicate a regular log entry, or a one byte (`0x01`) to indicate an end-of-log marker. No other values are valid. This can serve as an extension point: Future protocols that should be compatible with bamboo can use different tag values to introduce new functionality.
+-   `tag`, either a zero byte (`0x00`) to indicate a regular log entry, or a one byte (`0x01`) to indicate an end-of-log marker. No other values are valid. This can serve as an extension point: Future protocols that should be compatible with bamboo can use different tag values to introduce new functionality, for example signing primitives other than [ed25519](https://ed25519.cr.yp.to/).
 -   `payload_hash`, the hash of the payload, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash).
 -   `size`, the size of the payload, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64).
--   `author`, the public key of the log's author, encoded as a canonical, inary [yamf-signatory](https://github.com/AljoschaMeyer/yamf-signatory).
+-   `author`, the 32 bytes that make up the [ed25519](https://ed25519.cr.yp.to/) public key of the log's author
 -   `seqnum`, the sequence number of the entry, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64). Note that this limits the maximum size of logs to 2^64 - 1.
 -   `backlink`, the hash of the previous log entry, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash). This is omitted if the `seqnum` is one.
 -   `lipmaalink`, the hash of an older log entry, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash). For details on which entry the lipmaalink has to point to, see the next section. This is omitted if the `seqnum` is one.
