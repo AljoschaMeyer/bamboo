@@ -131,3 +131,18 @@ Note also that the entries of the path from `z` to `x` do not necessarily exist 
 [Hypercore](https://github.com/mafintosh/hypercore) is a distributed, sparsely-replicatable append-only log like bamboo. It uses merkle trees whereas bamboo only uses backlinks. Hypercore has slightly smaller certificates for partial verification (but still in `O(log(n))`), but appending or verifying an entry has a worst-case time complexity of `O(log(n))` rather than bamboo's `O(1)`. See [here](https://github.com/AljoschaMeyer/bamboo/issues/2) for a brief discussion of hypercore and its more complex verification mechanism. Transitive sparse replication via certificate pools can also be implemented on top of hypercore.
 
 [Leyline-core](https://github.com/AljoschaMeyer/leyline-core) is the author's clumsy first attempt at defining a log structure that supports partial replication. It ends up badly reinventing [authenticated append-only skip lists](https://arxiv.org/pdf/cs/0302010.pdf), which are arguably inferior to the [anti-monotone scheme](https://kodu.ut.ee/~lipmaa/papers/thesis/thesis.pdf) that bamboo uses.
+
+## Extensions
+
+This section outlines modifications to the protocol that augment its capabilities at the cost of increased complexity. When talking explicitly about the original format without any extensions, the term *vanilla bamboo* is used.
+
+### Private Bamboo
+
+Vanilla bamboo leaks some private data. If a peer is supposed to have acces to only entry number two, they still get the metada of entry number one. This allows them to learn the size of the payload, and to confirm guesses about the payload (by computing the hash of the guess and comparing against the actual hash).
+
+This can be fixed by adding a 96 bit [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)) to the logical data of an entry and adjusting the encoding. The salt should be randomly generated, and there should be no correlation between the salts of different entries. In the encoding that determines the data that gets signed, instead of signing the size and the payload hash, a (yamf-) hash of the concatenation of the salt, size and payload hash is signed.
+
+- vanilla: `sign(tag | size | payload_hash | remaining_stuff)`
+- private: `sign(tag | hash(salt | size | payload_hash) | remaining_stuff)`
+
+When a peer requests the payload of an entry, the salt of the entry is delivered as well, so that they can recompute the hash and check that it is indeed the one that was signed. Salts must thus always be remembered and transfered, private bamboo incurs an overhead of 96 more bits per log entry (as well as the cost of generating salts).
