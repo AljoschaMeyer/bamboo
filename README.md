@@ -140,9 +140,9 @@ This section outlines modifications to the protocol that augment its capabilitie
 
 Vanilla bamboo leaks some private data. If a peer is supposed to have acces to only entry number two, they still get the metada of entry number one. This allows them to learn the size of the payload, and to confirm guesses about the payload (by computing the hash of the guess and comparing against the actual hash).
 
-This can be fixed by adding a 96 bit [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)) to the logical data of an entry and adjusting the encoding. The salt should be randomly generated, and there should be no correlation between the salts of different entries. In the encoding that determines the data that gets signed, instead of signing the size and the payload hash, a (yamf-) hash of the concatenation of the salt, size and payload hash is signed.
+This can be fixed by adding a 96 bit [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)) to the logical data of an entry and adjusting the encoding. The salt should be randomly generated, and there should be no correlation between the salts of different entries. In the encoding that determines the data that gets signed, instead of signing the size and the payload hash, a (yamf-) hash of the concatenation of the salt and the size and a (yamf-) hash of the concatenation of the salt and the payload hash is signed.
 
 - vanilla: `sign(tag | size | payload_hash | remaining_stuff)`
-- private: `sign(tag | hash(salt | size | payload_hash) | remaining_stuff)`
+- private: `sign(tag | hash(salt | size) hash(salt | payload_hash) | remaining_stuff)`
 
 When a peer requests the payload of an entry, the salt of the entry is delivered as well, so that they can recompute the hash and check that it is indeed the one that was signed. Salts must thus always be remembered and transfered, private bamboo incurs an overhead of 96 more bits per log entry (as well as the cost of generating salts).
