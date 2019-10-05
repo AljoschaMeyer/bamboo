@@ -8,9 +8,10 @@ Powered by [science](https://pdfs.semanticscholar.org/76cc/ae87b47d7f11a4c2ae765
 
 ## Concepts and Properties
 
-Each append-only _log_ is identified by a public key of a cryptographic signature scheme. Conceptually, an _entry_ in the log is a tuple of:
+Each append-only _log_ is identified by a public key of a cryptographic signature scheme, and a 64 bit integer (one keypair can thus be used to maintain up to 2^64 logs). Conceptually, an _entry_ in the log is a tuple of:
 
 -   the _author_ of the entry, a public key of the digital signature scheme that is used for the log
+- the _log id_, a 64 bit integer
 -   the _sequence number_ of the entry (i.e. the offset in the log)
 -   the _backlink_, a cryptographically secure hash of the previous entry in the log
 -   the _lipmaalink_, a cryptographically secure hash of some older entry in the log, chosen such that there are short paths between any pair of entries
@@ -32,13 +33,14 @@ While this property alone allows a peer to efficiently validate parts of a log, 
 
 Since signatures and hashes are computed over concrete bytes rather than abstract descriptions, bamboo defines a precise binary encoding for the log entries. It uses multiformats so that new cryptographic primitives can be introduced without having to change the specification. The encoding is defined as the concatenation of the following byte strings:
 
--   `tag`, either a zero byte (`0x00`) to indicate a regular log entry, or a one byte (`0x01`) to indicate an end-of-log marker. No other values are valid. This can serve as an extension point: Future protocols that should be compatible with bamboo can use different tag values to introduce new functionality, for example signing primitives other than [ed25519](https://ed25519.cr.yp.to/).
--   `payload_hash`, the hash of the payload, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash).
--   `size`, the size of the payload, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64).
 -   `author`, the 32 bytes that make up the [ed25519](https://ed25519.cr.yp.to/) public key of the log's author
+- `log_id`, the 64 bit integer that serves to distinguish different logs by the same author
+-   `tag`, either a zero byte (`0x00`) to indicate a regular log entry, or a one byte (`0x01`) to indicate an end-of-log marker. No other values are valid. This can serve as an extension point: Future protocols that should be compatible with bamboo can use different tag values to introduce new functionality, for example signing primitives other than [ed25519](https://ed25519.cr.yp.to/).
 -   `seqnum`, the sequence number of the entry, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64). Note that this limits the maximum size of logs to 2^64 - 1.
 -   `backlink`, the hash of the previous log entry, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash). This is omitted if the `seqnum` is one.
 -   `lipmaalink`, the hash of an older log entry, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash). For details on which entry the lipmaalink has to point to, see the next section. This is omitted if the `seqnum` is one.
+-   `size`, the size of the payload, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64).
+-   `payload_hash`, the hash of the payload, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash).
 -   `sig`, the signature obtained from signing the previous data with the author's private key, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64) followed by that many bytes (the raw signature).
 
 Note that peers don't necessarily have to adhere to this encoding when persisting or exchanging data. In some cases, author, tag, seqnum, backlinks and payload_hash can be reconstructed without them having to be transmitted. This encoding is only binding for signature verification and hash computation, nothing more.
@@ -131,18 +133,3 @@ Note also that the entries of the path from `z` to `x` do not necessarily exist 
 [Hypercore](https://github.com/mafintosh/hypercore) is a distributed, sparsely-replicatable append-only log like bamboo. It uses merkle trees whereas bamboo only uses backlinks. Hypercore has slightly smaller certificates for partial verification (but still in `O(log(n))`), but appending or verifying an entry has a worst-case time complexity of `O(log(n))` rather than bamboo's `O(1)`. See [here](https://github.com/AljoschaMeyer/bamboo/issues/2) for a brief discussion of hypercore and its more complex verification mechanism. Transitive sparse replication via certificate pools can also be implemented on top of hypercore.
 
 [Leyline-core](https://github.com/AljoschaMeyer/leyline-core) is the author's clumsy first attempt at defining a log structure that supports partial replication. It ends up badly reinventing [authenticated append-only skip lists](https://arxiv.org/pdf/cs/0302010.pdf), which are arguably inferior to the [anti-monotone scheme](https://kodu.ut.ee/~lipmaa/papers/thesis/thesis.pdf) that bamboo uses.
-
-## Extensions
-
-This section outlines modifications to the protocol that augment its capabilities at the cost of increased complexity. When talking explicitly about the original format without any extensions, the term *vanilla bamboo* is used.
-
-### Private Bamboo
-
-Vanilla bamboo leaks some private data. If a peer is supposed to have acces to only entry number two, they still get the metada of entry number one. This allows them to learn the size of the payload, and to confirm guesses about the payload (by computing the hash of the guess and comparing against the actual hash).
-
-This can be fixed by adding a 96 bit [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)) to the logical data of an entry and adjusting the encoding. The salt should be randomly generated, and there should be no correlation between the salts of different entries. In the encoding that determines the data that gets signed, instead of signing the size and the payload hash, a (yamf-) hash of the concatenation of the salt and the size and a (yamf-) hash of the concatenation of the salt and the payload hash is signed.
-
-- vanilla: `sign(tag | size | payload_hash | remaining_stuff)`
-- private: `sign(tag | hash(salt | size) hash(salt | payload_hash) | remaining_stuff)`
-
-When a peer requests the payload of an entry, the salt of the entry is delivered as well, so that they can recompute the hash and check that it is indeed the one that was signed. Salts must thus always be remembered and transfered, private bamboo incurs an overhead of 96 more bits per log entry (as well as the cost of generating salts).
