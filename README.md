@@ -36,8 +36,8 @@ Since signatures and hashes are computed over concrete bytes rather than abstrac
 -   `author`, the 32 bytes that make up the [ed25519](https://ed25519.cr.yp.to/) public key of the log's author
 - `log_id`, the 64 bit integer that serves to distinguish different logs by the same author
 -   `seqnum`, the sequence number of the entry, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64). Note that this limits the maximum size of logs to 2^64 - 1.
--   `backlink`, the hash of the previous log entry, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash). This is omitted if the `seqnum` is one.
 -   `lipmaalink`, the hash of an older log entry, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash). For details on which entry the lipmaalink has to point to, see the next section. This is omitted if the `seqnum` is one, or if the seqnum is one more than the entry that would need to be hashed (including it would merely duplicate the `backlink` in this situation).
+-   `backlink`, the hash of the previous log entry, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash). This is omitted if the `seqnum` is one.
 -   `size`, the size of the payload, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64).
 -   `payload_hash`, the hash of the payload, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash).
 -   `sig`, the signature obtained from signing the previous data with the author's private key, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64) followed by that many bytes (the raw signature).
