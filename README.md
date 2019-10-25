@@ -40,7 +40,7 @@ Since signatures and hashes are computed over concrete bytes rather than abstrac
 -   `backlink`, the hash of the previous log entry, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash). This is omitted if the `seqnum` is one.
 -   `size`, the size of the payload, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64).
 -   `payload_hash`, the hash of the payload, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash).
--   `sig`, the signature obtained from signing the previous data with the author's private key, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64) followed by that many bytes (the raw signature).
+-   `sig`, the signature obtained from signing the previous data with the author's private key (64 bytes)
 
 Note that peers don't necessarily have to adhere to this encoding when persisting or exchanging data. In some cases, author, tag, seqnum, backlinks and payload_hash can be reconstructed without them having to be transmitted. This encoding is only binding for signature verification and hash computation, nothing more.
 
