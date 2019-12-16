@@ -34,7 +34,7 @@ Since signatures and hashes are computed over concrete bytes rather than abstrac
 
 -   `tag`, either a zero byte (`0x00`) to indicate a regular log entry, or a one byte (`0x01`) to indicate an end-of-log marker. No other values are valid. This can serve as an extension point: Future protocols that should be compatible with bamboo can use different tag values to introduce new functionality, for example signing primitives other than [ed25519](https://ed25519.cr.yp.to/).
 -   `author`, the 32 bytes that make up the [ed25519](https://ed25519.cr.yp.to/) public key of the log's author
-- `log_id`, the 64 bit integer that serves to distinguish different logs by the same author
+- `log_id`, the 64 bit integer that serves to distinguish different logs by the same author, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64)
 -   `seqnum`, the sequence number of the entry, encoded as a canonical [VarU64](https://github.com/AljoschaMeyer/varu64). Note that this limits the maximum size of logs to 2^64 - 1.
 -   `lipmaalink`, the hash of an older log entry, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash). For details on which entry the lipmaalink has to point to, see the next section. This is omitted if the `seqnum` is one, or if the seqnum is one more than the entry that would need to be hashed (including it would merely duplicate the `backlink` in this situation).
 -   `backlink`, the hash of the previous log entry, encoded as a canonical, binary [yamf-hash](https://github.com/AljoschaMeyer/yamf-hash). This is omitted if the `seqnum` is one.
