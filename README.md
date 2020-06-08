@@ -4,7 +4,9 @@ A cryptographically secure, distributed, single-writer append-only log that supp
 
 Powered by [science](https://pdfs.semanticscholar.org/76cc/ae87b47d7f11a4c2ae76510dde205a635cd0.pdf), this log format can serve as a more efficient alternative to [secure-scuttlebutt](https://www.scuttlebutt.nz/)'s linked lists or [hypercore](https://github.com/mafintosh/hypercore)'s merkle forests.
 
-**Status: Well-defined and useful in its current form. The author still considers some changes though. Also needs better presentation**
+**Status: Stable 🐼**
+
+Better documentation in progress.
 
 ## Concepts and Properties
 
