@@ -135,4 +135,6 @@ Note also that the entries of the path from `z` to `x` do not necessarily exist 
 
 ## Implementations
 
+This is a list of of bamboo implementations, submitted by their programmers. Please send a pull request if you want yours added as well. 
+
 [bamboo-rs](https://github.com/pietgeursen/bamboo-rs). Builds for 28+ targets including Linux, Windows, Mac, bare-metal embedded, and WASM.
