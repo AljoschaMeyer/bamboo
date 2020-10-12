@@ -106,7 +106,7 @@ An entry is considered _verified_ if and only if:
 -   the entry has sequence number one OR there is a link path from the entry to the first entry, where all but the newest entry (which is the one to be verified) are already verified
 -   the entry has sequence number one OR the backlink and the lipmaalink point to the entry of the expected sequence number
 
-Additionally, if the payload of an entry is available to a peer, the peer must check wether it hashes to the claimed (and signed) hash, and whether the size of the payload in bytes matches the claimed (and signed) size metadata. If it doesn't, the feed must be considered invalid from that entry onwards (there's zero tolerance for authors lying about payload sizes).
+Additionally, if the payload of an entry is available to a peer, the peer must check wether it hashes to the claimed (and signed) hash, and whether the size of the payload in bytes matches the claimed (and signed) size metadata. If the claimed hash matches but the claimed size doesn't, the feed must be considered invalid from that entry onwards (there's zero tolerance for authors lying about payload sizes).
 
 ## Partial Replication and Log Verification
 
