@@ -6,7 +6,11 @@ Powered by [science](https://pdfs.semanticscholar.org/76cc/ae87b47d7f11a4c2ae765
 
 **Status: Stable 🐼**
 
-Better documentation in progress.
+## Disclaimer
+
+Some years after authoring this specification, I do not consider the "append-only log" terminology to be appropriate anymore, see https://arxiv.org/abs/2308.13836
+
+Forking the log requires some way of deterministically invalidating some entries that were considered valid before the fork. This makes the log an "append-or-delete log", not an "append-only log". See also https://arxiv.org/abs/2307.08381 for a detailed discussion of invalidating all entries that are part of a fork.
 
 ## Concepts and Properties
 
@@ -22,7 +26,7 @@ Each append-only _log_ is identified by a public key of a cryptographic signatur
 -   a boolean that indicates whether this is a regular entry or an _end-of-log_ marker
 -   the digital signature of all the previous data, issued with the log's public key
 
-Since all entries are signed, only the holder of the log's private key (the _author_) can create new entries. Thus logs can be replicated via potentially untrusted peers - any attempt to alter data or create new entries can be detected. The author however could _fork_ a log by giving different entries of the same sequence number to different peers, resulting in a directed tree rather than a log (aka a path in graph-theory parlance). This is where the backlinks come in: By iteratively traversing backlinks, any reader of the log can verify that no fork occured. Forked logs are considered invalid from the point of the earliest fork, so there is no incentive for the author to deliberately fork their log. Additionally, backlinks establish a causal order on the existence of entries: Each entry guarantees that all previous entries have already existed prior in time, else their hash could not have been (transitively) included.
+Since all entries are signed, only the holder of the log's private key (the _author_) can create new entries. Thus logs can be replicated via potentially untrusted peers - any attempt to alter data or create new entries can be detected. The author however could _fork_ a log by giving different entries of the same sequence number to different peers, resulting in a directed tree rather than a log (aka a path in graph-theory parlance). This is where the backlinks come in: By iteratively traversing backlinks, any reader of the log can verify that no fork occured. Forked logs are considered invalid from the point of the earliest fork; a system using bamboo should clearly specify how to deal with forked logs. Additionally, backlinks establish a causal order on the existence of entries: Each entry guarantees that all previous entries have already existed prior in time, else their hash could not have been (transitively) included.
 
 As a result of these properties, replication of a full log between two peers becomes very simple: The peers compare the newest sequence numbers they are aware of, and the peer with newer entries sends them and the corresponding payloads to the other peer. The receiver verifies the integrity by checking author, signature, sequence numbers, payload sizes, backlink and lipmaalink, and then stores the entries in their local copy of the log. In this mode of replication, all peers are equally capable, it does not matter where the data originated. The worst a malicious peer could do is to deliberately withhold a suffix of the log.
 
