@@ -6,6 +6,8 @@ Powered by [science](https://pdfs.semanticscholar.org/76cc/ae87b47d7f11a4c2ae765
 
 **Status: Stable 🐼**
 
+You might want to look at [https://aljoscha-meyer.de/reed/](https://aljoscha-meyer.de/reed/), a spec based off a more efficient linking scheme.
+
 ## Disclaimer
 
 Some years after authoring this specification, I do not consider the "append-only log" terminology to be appropriate anymore, see https://arxiv.org/abs/2308.13836
